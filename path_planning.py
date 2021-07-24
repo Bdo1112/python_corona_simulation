@@ -7,7 +7,6 @@ import numpy as np
 
 from motion import get_motion_parameters, update_randoms
 
-
 class Destination:
     #second implementaion of aggregate design pattern
     #I created Destination class to cluster methods in path_planning.py to accomodate aggregate design pattern.

@@ -7,7 +7,6 @@ new infections, recoveries, and deaths
 import numpy as np
 from path_planning import Destination
 
-
 def find_nearby(population, infection_zone, traveling_infects=False,
                 kind='healthy', infected_previous_step=[]):
     '''finds nearby IDs
