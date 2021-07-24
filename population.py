@@ -11,9 +11,12 @@ import numpy as np
 from motion import get_motion_parameters
 from utils import check_folder
 
-def initialize_population(Config, mean_age=45, max_age=105,
+class Population():
+    #put initialize_population, save popuation, and population_tracker to ease of managing the domain by having aggregated design pattern
+    #initializing first with initialize_population, save its related date with save_population
+    def initialize_population(Config, mean_age=45, max_age=105,
                           xbounds=[0, 1], ybounds=[0, 1]):
-    '''initialized the population for the simulation
+        '''initialized the population for the simulation
 
     the population matrix for this simulation has the following columns:
 
@@ -49,46 +52,65 @@ def initialize_population(Config, mean_age=45, max_age=105,
 
     ybounds : 2d array
         lower and upper bounds of y axis
-    '''
+        '''
 
     #initialize population matrix
-    population = np.zeros((Config.pop_size, 15))
+        population = np.zeros((Config.pop_size, 15))
 
     #initalize unique IDs
-    population[:,0] = [x for x in range(Config.pop_size)]
-
+        population[:,0] = [x for x in range(Config.pop_size)]
     #initialize random coordinates
-    population[:,1] = np.random.uniform(low = xbounds[0] + 0.05, high = xbounds[1] - 0.05, 
+        population[:,1] = np.random.uniform(low = xbounds[0] + 0.05, high = xbounds[1] - 0.05, 
                                         size = (Config.pop_size,))
-    population[:,2] = np.random.uniform(low = ybounds[0] + 0.05, high = ybounds[1] - 0.05, 
+        population[:,2] = np.random.uniform(low = ybounds[0] + 0.05, high = ybounds[1] - 0.05, 
                                         size=(Config.pop_size,))
-
     #initialize random headings -1 to 1
-    population[:,3] = np.random.normal(loc = 0, scale = 1/3, 
+        population[:,3] = np.random.normal(loc = 0, scale = 1/3, 
                                        size=(Config.pop_size,))
-    population[:,4] = np.random.normal(loc = 0, scale = 1/3, 
+        population[:,4] = np.random.normal(loc = 0, scale = 1/3, 
                                        size=(Config.pop_size,))
-
     #initialize random speeds
-    population[:,5] = np.random.normal(Config.speed, Config.speed / 3)
+        population[:,5] = np.random.normal(Config.speed, Config.speed / 3)
 
     #initalize ages
-    std_age = (max_age - mean_age) / 3
-    population[:,7] = np.int32(np.random.normal(loc = mean_age, 
+        std_age = (max_age - mean_age) / 3
+        population[:,7] = np.int32(np.random.normal(loc = mean_age, 
                                                 scale = std_age, 
                                                 size=(Config.pop_size,)))
-
-    population[:,7] = np.clip(population[:,7], a_min = 0, 
+        population[:,7] = np.clip(population[:,7], a_min = 0, 
                               a_max = max_age) #clip those younger than 0 years
-
     #build recovery_vector
-    population[:,9] = np.random.normal(loc = 0.5, scale = 0.5 / 3, size=(Config.pop_size,))
+        population[:,9] = np.random.normal(loc = 0.5, scale = 0.5 / 3, size=(Config.pop_size,))
 
-    return population
+        return population
+    
+    
+    def save_population(population, tstep=0, folder='data_tstep'):
+        '''dumps population data at given timestep to disk
 
+    Function that dumps the simulation data to specific files on the disk.
+    Saves final state of the population matrix, the array of infected over time,
+    and the array of fatalities over time
 
-def initialize_destination_matrix(pop_size, total_destinations):
-    '''intializes the destination matrix
+    Keyword arguments
+    -----------------
+    population : ndarray
+        the array containing all the population information
+
+    tstep : int
+        the timestep that will be saved
+        ''' 
+        check_folder('%s/' %(folder))
+        np.save('%s/population_%i.npy' %(folder, tstep), population)
+        
+        
+
+class Environment():
+    
+    #Created Enviroment class(root) to creat aggregate design pattern
+    
+    def initialize_destination_matrix(pop_size, total_destinations):
+        '''intializes the destination matrix
 
     function that initializes the destination matrix used to
     define individual location and roam zones for population members
@@ -101,16 +123,15 @@ def initialize_destination_matrix(pop_size, total_destinations):
     total_destinations : int
         the number of destinations to maintain in the matrix. Set to more than
         one if for example people can go to work, supermarket, home, etc.
-    '''
+        '''
 
-    destinations = np.zeros((pop_size, total_destinations * 2))
+        destinations = np.zeros((pop_size, total_destinations * 2))
 
-    return destinations
-
-
-def set_destination_bounds(population, destinations, xmin, ymin, 
+        return destinations
+    
+    def set_destination_bounds(population, destinations, xmin, ymin, 
                            xmax, ymax, dest_no=1, teleport=True):
-    '''teleports all persons within limits
+        '''teleports all persons within limits
 
     Function that takes the population and coordinates,
     teleports everyone there, sets destination active and
@@ -133,29 +154,29 @@ def set_destination_bounds(population, destinations, xmin, ymin,
 
     teleport : bool
         whether to instantly teleport individuals to the defined locations
-    '''
+        '''
 
     #teleport
-    if teleport:
-        population[:,1] = np.random.uniform(low = xmin, high = xmax, size = len(population))
-        population[:,2] = np.random.uniform(low = ymin, high = ymax, size = len(population))
+        if teleport:
+            population[:,1] = np.random.uniform(low = xmin, high = xmax, size = len(population))
+            population[:,2] = np.random.uniform(low = ymin, high = ymax, size = len(population))
 
     #get parameters
-    x_center, y_center, x_wander, y_wander = get_motion_parameters(xmin, ymin, 
+        x_center, y_center, x_wander, y_wander = get_motion_parameters(xmin, ymin, 
                                                                    xmax, ymax)
 
     #set destination centers
-    destinations[:,(dest_no - 1) * 2] = x_center
-    destinations[:,((dest_no - 1) * 2) + 1] = y_center
+        destinations[:,(dest_no - 1) * 2] = x_center
+        destinations[:,((dest_no - 1) * 2) + 1] = y_center
 
     #set wander bounds
-    population[:,13] = x_wander
-    population[:,14] = y_wander
+        population[:,13] = x_wander
+        population[:,14] = y_wander
 
-    population[:,11] = dest_no #set destination active
-    population[:,12] = 1 #set destination reached
+        population[:,11] = dest_no #set destination active
+        population[:,12] = 1 #set destination reached
 
-    return population, destinations
+        return population, destinations
 
 
 def save_data(population, pop_tracker):
@@ -182,25 +203,6 @@ def save_data(population, pop_tracker):
     np.save('data/%i/infected.npy' %num_files, pop_tracker.infectious)
     np.save('data/%i/recovered.npy' %num_files, pop_tracker.recovered)
     np.save('data/%i/fatalities.npy' %num_files, pop_tracker.fatalities)
-
-
-def save_population(population, tstep=0, folder='data_tstep'):
-    '''dumps population data at given timestep to disk
-
-    Function that dumps the simulation data to specific files on the disk.
-    Saves final state of the population matrix, the array of infected over time,
-    and the array of fatalities over time
-
-    Keyword arguments
-    -----------------
-    population : ndarray
-        the array containing all the population information
-
-    tstep : int
-        the timestep that will be saved
-    ''' 
-    check_folder('%s/' %(folder))
-    np.save('%s/population_%i.npy' %(folder, tstep), population)
 
 
 class Population_trackers():
