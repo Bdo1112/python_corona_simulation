@@ -3,8 +3,6 @@ file that contains all functions to define destinations in the
 environment of the simulated world.
 '''
 
-
-
 import numpy as np
 
 def build_hospital(xmin, xmax, ymin, ymax, plt, addcross=True):
