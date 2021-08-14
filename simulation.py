@@ -7,8 +7,9 @@ from matplotlib.animation import FuncAnimation
 
 from config import Configuration, config_error
 from environment import build_hospital
-from infection import find_nearby, infect, recover_or_die, compute_mortality,\
-healthcare_infection_correction
+from infection import FindNearBy
+from infection import PatientStatus
+from infection import VirusStatus
 from motion import update_positions, out_of_bounds, update_randoms,\
 get_motion_parameters
 from path_planning import go_to_location, set_destination, check_at_destination,\
@@ -111,7 +112,7 @@ class Simulation():
         self.population = update_positions(self.population)
 
         #find new infections
-        self.population, self.destinations = infect(self.population, self.Config, self.frame, 
+        self.population, self.destinations = PatientStatus.infect(self.population, self.Config, self.frame, 
                                                     send_to_location = self.Config.self_isolate, 
                                                     location_bounds = self.Config.isolation_bounds,  
                                                     destinations = self.destinations, 
@@ -119,7 +120,7 @@ class Simulation():
                                                     location_odds = self.Config.self_isolate_proportion)
 
         #recover and die
-        self.population = recover_or_die(self.population, self.frame, self.Config)
+        self.population = PatientStatus.recover_or_die(self.population, self.frame, self.Config)
 
         #send cured back to population if self isolation active
         #perhaps put in recover or die class
